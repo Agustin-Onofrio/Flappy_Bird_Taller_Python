@@ -10,56 +10,59 @@ ANCHO_VENTANA = 600
 ALTO_VENTANA = 499
   
 # set height and width of window
-window = pygame.display.set_mode((ANCHO_VENTANA, ALTO_VENTANA))
-elevation = ALTO_VENTANA 
-game_images = {}
+ventana = pygame.display.set_mode((ANCHO_VENTANA, ALTO_VENTANA))
+elevacion = ALTO_VENTANA 
+imagenes_del_juego = {}
 VELOCIDAD_INICIAL = 32
 VELOCIDAD_MEDIA=50
 VELOCIDAD_DIFICIL=70
-pipeimage = 'images/pipe.png'
+IMAGEN_TUBO = 'images/pipe.png'
 IMAGEN_FONDO = 'images/background.jpg'
-IMAGEN_JUGADOR = 'images/bird.png'
+IMAGEN_JUGADOR_PAJARO = 'images/bird.png'
+IMAGEN_JUGADOR_NICOLAS = 'images/nicolas.png'
+IMAGEN_JUGADOR_GUSTAVO = 'images/gustavo.png'
+IMAGEN_JUGADOR_FRANCO = 'images/franco.png'
 # sealevel_image = 'images/base.jfif'
   
   
 def flappygame():
-    your_score = 0
+    puntaje = 0
     horizontal = int(ANCHO_VENTANA/5)
     vertical = int(ANCHO_VENTANA/2)
-    ground = 0
+    piso = 0
     mytempheight = 100
     velocidad=VELOCIDAD_INICIAL
   
     # Generating two pipes for blitting on window
-    first_pipe = createPipe()
-    second_pipe = createPipe()
+    primer_tubo = crearTubo()
+    segundo_tubo = crearTubo()
   
     # List containing lower pipes
-    down_pipes = [
+    tubo_inferior = [
         {'x': ANCHO_VENTANA+300-mytempheight,
-         'y': first_pipe[1]['y']},
+         'y': primer_tubo[1]['y']},
         {'x': ANCHO_VENTANA+300-mytempheight+(ANCHO_VENTANA/2),
-         'y': second_pipe[1]['y']},
+         'y': segundo_tubo[1]['y']},
     ]
   
     # List Containing upper pipes
-    up_pipes = [
+    tubo_superior = [
         {'x': ANCHO_VENTANA+300-mytempheight,
-         'y': first_pipe[0]['y']},
+         'y': primer_tubo[0]['y']},
         {'x': ANCHO_VENTANA+200-mytempheight+(ANCHO_VENTANA/2),
-         'y': second_pipe[0]['y']},
+         'y': segundo_tubo[0]['y']},
     ]
   
     # pipe velocity along x
-    pipeVelX = -4
+    velocidad_tubo_x = -4
   
     # bird velocity
-    bird_velocity_y = -9
-    bird_Max_Vel_Y = 10
+    velocidad_pajaro_y = -9
+    velocidad_pajaro_x = 10
     bird_Min_Vel_Y = -8
     birdAccY = 1
   
-    bird_flap_velocity = -8
+    velocidad_salto_pajaro = -8
     bird_flapped = False
     while True:
         for event in pygame.event.get():
@@ -68,114 +71,148 @@ def flappygame():
                 sys.exit()
             if event.type == KEYDOWN and (event.key == K_SPACE or event.key == K_UP):
                 if vertical > 0:
-                    bird_velocity_y = bird_flap_velocity
+                    velocidad_pajaro_y = velocidad_salto_pajaro
                     bird_flapped = True
   
         # This function will return true
         # if the flappybird is crashed
         game_over = isGameOver(horizontal,
                                vertical,
-                               up_pipes,
-                               down_pipes)
+                               tubo_superior,
+                               tubo_inferior)
         if game_over:
             mostrarPerdiste()
             return
   
         # check for your_score
-        playerMidPos = horizontal + game_images['flappybird'].get_width()/2
-        for pipe in up_pipes:
-            pipeMidPos = pipe['x'] + game_images['pipeimage'][0].get_width()/2
+        playerMidPos = horizontal + imagen_personaje.get_width()/2
+        for pipe in tubo_superior:
+            pipeMidPos = pipe['x'] + imagen_tubo_inferior.get_width()/2
             if pipeMidPos <= playerMidPos < pipeMidPos + 4:
-                your_score += 1
-                print(f"Your your_score is {your_score}")
+                puntaje += 1
+                print(f"Your your_score is {puntaje}")
   
-        if bird_velocity_y < bird_Max_Vel_Y and not bird_flapped:
-            bird_velocity_y += birdAccY
+        if velocidad_pajaro_y < velocidad_pajaro_x and not bird_flapped:
+            velocidad_pajaro_y += birdAccY
   
         if bird_flapped:
             bird_flapped = False
-        playerHeight = game_images['flappybird'].get_height()
+        playerHeight = imagen_personaje.get_height()
         vertical = vertical + \
-            min(bird_velocity_y, elevation - vertical - playerHeight)
+            min(velocidad_pajaro_y, elevacion - vertical - playerHeight)
   
         # move pipes to the left
-        for upperPipe, lowerPipe in zip(up_pipes, down_pipes):
-            upperPipe['x'] += pipeVelX
-            lowerPipe['x'] += pipeVelX
+        for upperPipe, lowerPipe in zip(tubo_superior, tubo_inferior):
+            upperPipe['x'] += velocidad_tubo_x
+            lowerPipe['x'] += velocidad_tubo_x
   
         # Add a new pipe when the first is
         # about to cross the leftmost part of the screen
-        if 0 < up_pipes[0]['x'] < 5:
-            newpipe = createPipe()
-            up_pipes.append(newpipe[0])
-            down_pipes.append(newpipe[1])
+        if 0 < tubo_superior[0]['x'] < 5:
+            newpipe = crearTubo()
+            tubo_superior.append(newpipe[0])
+            tubo_inferior.append(newpipe[1])
   
         # if the pipe is out of the screen, remove it
-        if up_pipes[0]['x'] < -game_images['pipeimage'][0].get_width():
-            up_pipes.pop(0)
-            down_pipes.pop(0)
+        if tubo_superior[0]['x'] < -imagen_tubo_inferior.get_width():
+            tubo_superior.pop(0)
+            tubo_inferior.pop(0)
   
         # Lets blit our game images now
-        window.blit(game_images['background'], (0, 0))
-        for upperPipe, lowerPipe in zip(up_pipes, down_pipes):
-            window.blit(game_images['pipeimage'][0],
+        ventana.blit(imagen_fondo, (0, 0))
+        for upperPipe, lowerPipe in zip(tubo_superior, tubo_inferior):
+            ventana.blit(imagen_tubo_inferior,
                         (upperPipe['x'], upperPipe['y']))
-            window.blit(game_images['pipeimage'][1],
+            ventana.blit(imagen_tubo_superior,
                         (lowerPipe['x'], lowerPipe['y']))
   
         # window.blit(game_images['sea_level'], (ground, elevation))
-        window.blit(game_images['flappybird'], (horizontal, vertical))
+        ventana.blit(imagen_personaje, (horizontal, vertical))
   
-        # Fetching the digits of score.
-        numbers = [int(x) for x in list(str(your_score))]
-        width = 0
-  
-        # finding the width of score images from numbers.
-        for num in numbers:
-            width += game_images['scoreimages'][num].get_width()
-        Xoffset = (ANCHO_VENTANA - width)/1.1
-  
-        # Blitting the images on the window.
-        for num in numbers:
-            window.blit(game_images['scoreimages'][num],
-                        (Xoffset, ANCHO_VENTANA*0.02))
-            Xoffset += game_images['scoreimages'][num].get_width()
-  
+        mostrar_puntaje(puntaje)
         # Refreshing the game window and displaying the score.
         pygame.display.update()
-        framepersecond_clock.tick(velocidad)
-        if(your_score>3):
+        fps.tick(velocidad)
+        if(puntaje>3):
             velocidad=VELOCIDAD_MEDIA
-            if(your_score>6):
+            if(puntaje>6):
                 velocidad=VELOCIDAD_DIFICIL
   
   
 def isGameOver(horizontal, vertical, up_pipes, down_pipes):
-    if vertical > elevation -50  or vertical < 0:
+    if vertical > elevacion -50  or vertical < 0:
         return True
   
     for pipe in up_pipes:
-        pipeHeight = game_images['pipeimage'][0].get_height()
+        pipeHeight = imagen_tubo_inferior.get_height()
         if(vertical < pipeHeight + pipe['y'] and\
-           abs(horizontal - pipe['x']) < game_images['pipeimage'][0].get_width()):
+           abs(horizontal - pipe['x']) < imagen_tubo_inferior.get_width()):
             return True
   
     for pipe in down_pipes:
-        if (vertical + game_images['flappybird'].get_height() > pipe['y']) and\
-        abs(horizontal - pipe['x']) < game_images['pipeimage'][0].get_width():
+        if (vertical + imagen_personaje.get_height() > pipe['y']) and\
+        abs(horizontal - pipe['x']) < imagen_tubo_inferior.get_width():
             return True
     return False
+
+def mostrar_puntaje(puntaje):
+    # Se hace una lista con los digitos del puntaje obtenido
+        numbers = [int(x) for x in list(str(puntaje))]
+        width = 0
+    
+
+        # Calcula el ancho del numero a mostrar
+        for num in numbers:
+            imagen_del_digito=imagenDigito(num)
+            width += imagen_del_digito.get_width()
+        Xoffset = (ANCHO_VENTANA - width)/1.1
   
+        # Por cada digito muestra la imagen correspondiente
+        for num in numbers:
+            imagen_del_digito=imagenDigito(num)
+            ventana.blit(imagen_del_digito,
+                        (Xoffset, ANCHO_VENTANA*0.02))
+            Xoffset += imagen_del_digito.get_width()
   
-def createPipe():
-    offset = ALTO_VENTANA/3
-    pipeHeight = game_images['pipeimage'][0].get_height()
-    y2 = offset + \
+
+def imagenDigito(digito):
+    imagen=""
+    if digito==0:
+        imagen=pygame.image.load('images/0.png').convert_alpha()
+    elif digito==1:
+        imagen=pygame.image.load('images/1.png').convert_alpha()
+    elif digito==2:
+        imagen=pygame.image.load('images/2.png').convert_alpha()
+    elif digito==3:
+        imagen=pygame.image.load('images/3.png').convert_alpha()
+    elif digito==4:
+        imagen=pygame.image.load('images/4.png').convert_alpha()
+    elif digito==5:
+        imagen=pygame.image.load('images/5.png').convert_alpha()
+    elif digito==6:
+        imagen=pygame.image.load('images/6.png').convert_alpha()
+    elif digito==7:
+        imagen=pygame.image.load('images/7.png').convert_alpha()
+    elif digito==8:
+        imagen=pygame.image.load('images/8.png').convert_alpha()
+    elif digito==9:
+        imagen=pygame.image.load('images/9.png').convert_alpha()
+    
+    return imagen
+
+
+
+
+  
+def crearTubo():
+    pasaje = ALTO_VENTANA/3
+    pipeHeight = imagen_tubo_inferior.get_height()
+    y2 = pasaje + \
         random.randrange(
             # 0, int(ALTO_VENTANA - game_images['sea_level'].get_height() - 1.2 * offset))  
-            0, int(ALTO_VENTANA - 0 - 1.2 * offset))
+            0, int(ALTO_VENTANA - 0 - 1.2 * pasaje))
     pipeX = ANCHO_VENTANA + 10
-    y1 = pipeHeight - y2 + offset
+    y1 = pipeHeight - y2 + pasaje
     pipe = [
         # upper Pipe
         {'x': pipeX, 'y': -y1},
@@ -187,80 +224,91 @@ def createPipe():
   
 def mostrarPerdiste():
     print("PERDISTE")
-    pass
+    return
+
+
+def elegirPersonaje():
+
+    print(
+        '''Ingresa el personaje con el que queres jugar
+        1-Pajaro
+        2-Nicolas
+        3-Gustavo
+        4-Franco''')
+
+
+    opcion=int(input())
+
+    if opcion==1:
+        imagen = pygame.image.load(IMAGEN_JUGADOR_PAJARO).convert_alpha()
+    elif opcion==2:
+        imagen = pygame.image.load(IMAGEN_JUGADOR_NICOLAS).convert_alpha()
+    elif opcion==3:
+        imagen = pygame.image.load(IMAGEN_JUGADOR_GUSTAVO).convert_alpha()
+    elif opcion==4:
+        imagen = pygame.image.load(IMAGEN_JUGADOR_FRANCO).convert_alpha()
+
+    return imagen
+
+
+
 
 
   
-# program where the game starts
+# Ejecucion principal
 if __name__ == "__main__":
   
-        # For initializing modules of pygame library
+    # Inicializo pygame
     pygame.init()
-    framepersecond_clock = pygame.time.Clock()
+    fps = pygame.time.Clock()
   
-    # Sets the title on top of game window
+    # Pongo titulo a la ventana
     pygame.display.set_caption('Flappy Bird Game')
   
-    # Load all the images which we will use in the game
-  
-    # images for displaying score
-    game_images['scoreimages'] = (
-        pygame.image.load('images/0.png').convert_alpha(),
-        pygame.image.load('images/1.png').convert_alpha(),
-        pygame.image.load('images/2.png').convert_alpha(),
-        pygame.image.load('images/3.png').convert_alpha(),
-        pygame.image.load('images/4.png').convert_alpha(),
-        pygame.image.load('images/5.png').convert_alpha(),
-        pygame.image.load('images/6.png').convert_alpha(),
-        pygame.image.load('images/7.png').convert_alpha(),
-        pygame.image.load('images/8.png').convert_alpha(),
-        pygame.image.load('images/9.png').convert_alpha()
-    )
-    game_images['flappybird'] = pygame.image.load(
-        IMAGEN_JUGADOR).convert_alpha()
+    
+    imagen_personaje = elegirPersonaje()
     # game_images['sea_level'] = pygame.image.load(
     #     sealevel_image).convert_alpha()
-    game_images['background'] = pygame.image.load(
-        IMAGEN_FONDO).convert_alpha()
-    game_images['pipeimage'] = (pygame.transform.rotate(pygame.image.load(
-        pipeimage).convert_alpha(), 180), pygame.image.load(
-      pipeimage).convert_alpha())
+    imagen_fondo = pygame.image.load(IMAGEN_FONDO).convert_alpha()
+    
+    # imagen_de_los_tubos = (pygame.transform.rotate(pygame.image.load(IMAGEN_TUBO).convert_alpha(), 180), pygame.image.load(IMAGEN_TUBO).convert_alpha())
+    #Cargo las imagenes de los tubos
+    imagen_tubo_inferior=pygame.transform.rotate(pygame.image.load(IMAGEN_TUBO).convert_alpha(), 180)
+    imagen_tubo_superior=pygame.image.load(IMAGEN_TUBO).convert_alpha()
   
-    print("WELCOME TO THE FLAPPY BIRD GAME")
-    print("Press space or enter to start the game")
+    print("Bienvenido al juego de Flappy bird")
+    print("Presiona enter para continuar")
     
     
-    # Here starts the main game
-  
+    # Comienzo del juego
     while True:
   
-        # sets the coordinates of flappy bird
+        #Seteo la posicion inicial del personaje
   
         horizontal = int(ANCHO_VENTANA/5)
         vertical = int(
-            (ALTO_VENTANA - game_images['flappybird'].get_height())/2)
+            (ALTO_VENTANA - imagen_personaje.get_height())/2)
         ground = 100
         print("Comienzo del juego!")
         while True:
             for event in pygame.event.get():
   
-                # if user clicks on cross button, close the game
+                # Si aprieta salir de la ventana se para el programa
                 if event.type == QUIT or (event.type == KEYDOWN and \
                                           event.key == K_ESCAPE):
                     pygame.quit()
                     sys.exit()
   
-                # If the user presses space or
-                # up key, start the game for them
+                #Si aprieta espacio o la flecha hacia arriba comienza el juego
                 elif event.type == KEYDOWN and (event.key == K_SPACE or\
                                                 event.key == K_UP):
                     flappygame()
   
-                # if user doesn't press anykey Nothing happen
+                #Si no pasa nada de lo anterior la pantalla no cambia
                 else:
-                    window.blit(game_images['background'], (0, 0))
-                    window.blit(game_images['flappybird'],
+                    ventana.blit(imagen_fondo, (0, 0))
+                    ventana.blit(imagen_personaje,
                                 (horizontal, vertical))
                     # window.blit(game_images['sea_level'], (ground, elevation))
                     pygame.display.update()
-                    framepersecond_clock.tick(VELOCIDAD_INICIAL)
+                    fps.tick(VELOCIDAD_INICIAL)
